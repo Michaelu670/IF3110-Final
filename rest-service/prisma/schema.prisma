@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId            Int                 @id @default(autoincrement())
+  email             String              @unique @db.VarChar(200)
+  username          String              @unique @db.VarChar(200)
+  password          String              @db.VarChar(200)
+  admin             Boolean             @default(false)
+  store_accounts    Connected_account[]
+  history_senders   History[]           @relation("history_sender")
+  history_recievers History[]           @relation("history_reciever")
+  notif_senders     Notification[]      @relation("notif_sender")
+  notif_recievers   Notification[]      @relation("notif_reciever")
+}
+
+model Registration {
+  registId Int @id @default(autoincrement())
+  email             String              @unique @db.VarChar(200)
+  username          String              @unique @db.VarChar(200)
+  password          String              @db.VarChar(200)
+}
+
+model Connected_account {
+  walletUser     User   @relation(fields: [walletId], references: [userId], onDelete: Cascade)
+  walletId       Int
+  store_username String @db.VarChar(200)
+
+  @@id([walletId, store_username])
+}
+
+model History {
+  transId      Int      @default(autoincrement())
+  userId       Int
+  senderUser   User     @relation(fields: [senderId], references: [userId], onDelete: Cascade, name: "history_sender")
+  senderId     Int
+  transAmount  Int
+  recieverUser User     @relation(fields: [recieverId], references: [userId], onDelete: Cascade, name: "history_reciever")
+  recieverId   Int
+  info         String   @db.VarChar(255) @default("")
+  status       Boolean
+  time         DateTime @default(now())
+
+  @@id([transId, userId])
+}
+
+model Notification {
+  notifId       Int      @default(autoincrement())
+  transSender   User     @relation(fields: [senderId], references: [userId], onDelete: Cascade, name: "notif_sender")
+  userId        Int
+  senderId      Int
+  transAmount   Int
+  transReciever User     @relation(fields: [recieverId], references: [userId], onDelete: Cascade, name: "notif_reciever")
+  recieverId    Int
+  info          String   @db.VarChar(255)
+  time          DateTime @default(now())
+
+  @@id([notifId, userId])
+}

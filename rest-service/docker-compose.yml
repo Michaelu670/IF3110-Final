@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  rest:
+    build: .
+    image: tubes-2:latest
+    ports:
+      - "3305:3305"
+    env_file:
+      - .env
+
+  db:
+    image: mysql:latest
+    ports:
+      - "3396:3306"
+    hostname: db
+    healthcheck:
+      test: mysqladmin ping -h localhost -u${MYSQL_USER} -p{MYSQL_PASSWORD}
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
